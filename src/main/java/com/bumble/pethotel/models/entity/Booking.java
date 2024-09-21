@@ -44,6 +44,9 @@ public class Booking {
     @Column(nullable = false)
     private boolean isDelete = false;
 
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Payment> payments;
+
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Room room;
