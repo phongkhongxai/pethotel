@@ -6,6 +6,7 @@ import com.bumble.pethotel.utils.CodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class EmailVerificationService {
     @Autowired
     private UserRepository userRepository;
 
+    @Async
     public void sendVerificationCode(User user) {
         String code = CodeGenerator.generateVerificationCode();
         user.setVerificationCode(code);
@@ -39,6 +41,7 @@ public class EmailVerificationService {
         mailSender.send(email);
     }
 
+    @Async
     public void sendPasswordResetToken(User user) {
         String token = CodeGenerator.generateVerificationCode();
         user.setResetPasswordToken(token);
@@ -48,6 +51,7 @@ public class EmailVerificationService {
         // Send email with the reset token
         sendEmailReset(user.getEmail(), token);
     }
+
 
     private void sendEmailReset(String recipientEmail, String resetToken) {
         String subject = "Password Reset Request";
