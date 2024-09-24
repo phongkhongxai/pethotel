@@ -18,6 +18,7 @@ import com.bumble.pethotel.security.JwtTokenProvider;
 import com.bumble.pethotel.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -134,6 +135,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public String signup(SignupDto signupDto) {
 
         // add check if username already exists
@@ -156,8 +158,8 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerified(false);
         user.setAvatarUrl("default");
 
-        userRepository.save(user);
-        emailVerificationService.sendVerificationCode(user);
+        User user1 = userRepository.save(user);
+        emailVerificationService.sendVerificationCode(user1);
 
         return "User registered successfully! Please check your email for the verification code.";
     }

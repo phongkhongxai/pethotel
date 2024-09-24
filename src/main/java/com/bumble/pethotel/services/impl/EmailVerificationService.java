@@ -19,12 +19,11 @@ public class EmailVerificationService {
     @Autowired
     private UserRepository userRepository;
 
-    @Async
+     @Async
     public void sendVerificationCode(User user) {
         String code = CodeGenerator.generateVerificationCode();
         user.setVerificationCode(code);
         user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10)); // Code valid for 10 minutes
-        userRepository.save(user);
 
         // Send email with the verification code
         sendEmailVerify(user.getEmail(), code);
