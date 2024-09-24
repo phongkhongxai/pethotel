@@ -22,6 +22,9 @@ public class Review {
     @Column
     private String feedback;
 
+    @Column(nullable = false)
+    private boolean isDelete = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

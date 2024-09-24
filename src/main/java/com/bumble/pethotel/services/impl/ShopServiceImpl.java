@@ -1,0 +1,145 @@
+package com.bumble.pethotel.services.impl;
+
+import com.bumble.pethotel.models.entity.Pet;
+import com.bumble.pethotel.models.entity.Shop;
+import com.bumble.pethotel.models.entity.User;
+import com.bumble.pethotel.models.exception.PetApiException;
+import com.bumble.pethotel.models.payload.dto.PetDto;
+import com.bumble.pethotel.models.payload.dto.ShopDto;
+import com.bumble.pethotel.models.payload.requestModel.ShopUpdated;
+import com.bumble.pethotel.models.payload.responseModel.ShopsResponse;
+import com.bumble.pethotel.repositories.ShopRepository;
+import com.bumble.pethotel.repositories.UserRepository;
+import com.bumble.pethotel.services.ShopService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class ShopServiceImpl implements ShopService {
+    @Autowired
+    private ModelMapper modelMapper;
+    @Autowired
+    private ShopRepository shopRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Override
+    public ShopDto saveShop(ShopDto shopDto) {
+        Optional<User> user = userRepository.findById(shopDto.getUserId());
+        if (user.isEmpty()){
+            throw new PetApiException(HttpStatus.NOT_FOUND, "User not found with id: "+ shopDto.getUserId());
+        }
+        Shop shop = modelMapper.map(shopDto, Shop.class);
+        shop.setDelete(false);
+        return modelMapper.map(shopRepository.save(shop), ShopDto.class);
+    }
+
+    @Override
+    public ShopDto getShopById(Long id) {
+        Optional<Shop> shop = shopRepository.findById(id);
+        if(shop.isEmpty()){
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: "+ id);
+
+        }
+        return modelMapper.map(shop.get(), ShopDto.class);
+    }
+
+    @Override
+    public ShopsResponse getAllShop(int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Shop> shops = shopRepository.findAllNotDeleted(pageable);
+
+        // get content for page object
+        List<Shop> listOfShops = shops.getContent();
+
+        List<ShopDto> content = listOfShops.stream().map(bt -> modelMapper.map(bt, ShopDto.class)).collect(Collectors.toList());
+
+        ShopsResponse templatesResponse = new ShopsResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(shops.getNumber());
+        templatesResponse.setPageSize(shops.getSize());
+        templatesResponse.setTotalElements(shops.getTotalElements());
+        templatesResponse.setTotalPages(shops.getTotalPages());
+        templatesResponse.setLast(shops.isLast());
+
+        return templatesResponse;
+    }
+
+    @Override
+    public ShopsResponse getShopByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND,"User not found with id: "+ userId));
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Shop> shops = shopRepository.findByUserAndIsDeleteFalse(user,pageable);
+
+        // get content for page object
+        List<Shop> listOfShops = shops.getContent();
+
+        List<ShopDto> content = listOfShops.stream().map(bt -> modelMapper.map(bt, ShopDto.class)).collect(Collectors.toList());
+
+        ShopsResponse templatesResponse = new ShopsResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(shops.getNumber());
+        templatesResponse.setPageSize(shops.getSize());
+        templatesResponse.setTotalElements(shops.getTotalElements());
+        templatesResponse.setTotalPages(shops.getTotalPages());
+        templatesResponse.setLast(shops.isLast());
+
+        return templatesResponse;
+    }
+
+    @Override
+    public ShopDto updateShop(Long id, ShopUpdated shopUpdated) {
+        Optional<Shop> shopOptional = shopRepository.findById(id);
+        if (shopOptional.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: " + id);
+        }
+
+        // Retrieve the shop entity
+        Shop shop = shopOptional.get();
+
+        // Update fields if present in the shopUpdated object
+        shop.setName(shopUpdated.getName() != null ? shopUpdated.getName() : shop.getName());
+        shop.setAddress(shopUpdated.getAddress() != null ? shopUpdated.getAddress() : shop.getAddress());
+        shop.setPhone(shopUpdated.getPhone() != null ? shopUpdated.getPhone() : shop.getPhone());
+        shop.setDescription(shopUpdated.getDescription() != null ? shopUpdated.getDescription() : shop.getDescription());
+        shop.setBankName(shopUpdated.getBankName() != null ? shopUpdated.getBankName() : shop.getBankName());
+        shop.setAccountNumber(shopUpdated.getAccountNumber() != null ? shopUpdated.getAccountNumber() : shop.getAccountNumber());
+
+        Shop updatedShop = shopRepository.save(shop);
+        return modelMapper.map(updatedShop, ShopDto.class);
+    }
+
+    @Override
+    public String deleteShop(Long id) {
+        Optional<Shop> shopOptional = shopRepository.findById(id);
+        if (shopOptional.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: " + id);
+        }
+
+        // Retrieve the shop entity
+        Shop shop = shopOptional.get();
+        shop.setDelete(true);
+        shopRepository.save(shop);
+        return "Deleted successfully";
+    }
+}

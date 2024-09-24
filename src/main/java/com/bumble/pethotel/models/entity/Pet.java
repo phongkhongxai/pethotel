@@ -17,10 +17,8 @@ public class Pet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="pet_id")
     private Long id;
-
     @Column(nullable = false)
     private String name;
-
     @Column(nullable = false)
     private int age;
     @Column(nullable = false)

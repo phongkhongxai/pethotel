@@ -1,0 +1,17 @@
+package com.bumble.pethotel.services;
+
+import com.bumble.pethotel.models.payload.dto.PetDto;
+import com.bumble.pethotel.models.payload.dto.ShopDto;
+import com.bumble.pethotel.models.payload.requestModel.ShopUpdated;
+import com.bumble.pethotel.models.payload.responseModel.PetsResponese;
+import com.bumble.pethotel.models.payload.responseModel.ShopsResponse;
+
+public interface ShopService {
+    ShopDto saveShop(ShopDto shopDto);
+    ShopDto getShopById(Long id);
+    ShopsResponse getAllShop(int pageNo, int pageSize, String sortBy, String sortDir);
+    ShopsResponse getShopByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir);
+    ShopDto updateShop(Long id, ShopUpdated shopUpdated);
+    String deleteShop(Long id);
+
+}

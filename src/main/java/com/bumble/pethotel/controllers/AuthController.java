@@ -3,6 +3,7 @@ package com.bumble.pethotel.controllers;
 
 import com.bumble.pethotel.models.payload.dto.LoginDto;
 import com.bumble.pethotel.models.payload.dto.SignupDto;
+import com.bumble.pethotel.models.payload.requestModel.NewPasswordRequest;
 import com.bumble.pethotel.models.payload.responseModel.AuthenticationResponse;
 import com.bumble.pethotel.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,9 +68,8 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam("token") String token,
-                                                @RequestParam("newPassword") String newPassword) {
-        String response = authService.resetPassword(token, newPassword);
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody NewPasswordRequest newPasswordRequest) {
+        String response = authService.resetPassword(newPasswordRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }

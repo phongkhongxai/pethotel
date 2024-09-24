@@ -8,6 +8,7 @@ import com.bumble.pethotel.models.entity.User;
 import com.bumble.pethotel.models.exception.PetApiException;
 import com.bumble.pethotel.models.payload.dto.LoginDto;
 import com.bumble.pethotel.models.payload.dto.SignupDto;
+import com.bumble.pethotel.models.payload.requestModel.NewPasswordRequest;
 import com.bumble.pethotel.models.payload.responseModel.AuthenticationResponse;
 import com.bumble.pethotel.repositories.AccessTokenRepository;
 import com.bumble.pethotel.repositories.RefreshTokenRepository;
@@ -247,8 +248,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String resetPassword(String token, String newPassword) {
-        User user = userRepository.findByResetPasswordToken(token)
+    public String resetPassword(NewPasswordRequest newPasswordRequest) {
+        User user = userRepository.findByResetPasswordTokenAndEmail(newPasswordRequest.getToken(), newPasswordRequest.getEmail())
                 .orElseThrow(() -> new PetApiException(HttpStatus.BAD_REQUEST, "Invalid or expired password reset token."));
 
         if (user.getResetPasswordExpiry().isBefore(LocalDateTime.now())) {
@@ -256,7 +257,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Update user's password
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(newPasswordRequest.getNewPassword()));
         user.setResetPasswordToken(null); // Clear the reset token
         user.setResetPasswordExpiry(null);
         userRepository.save(user);
