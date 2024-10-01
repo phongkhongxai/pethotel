@@ -32,6 +32,8 @@ public class Room {
 
     @Column
     private String sign;
+    @Column
+    private String code;
 
     @ManyToOne
     @JoinColumn(name = "shop_id", nullable = false)
