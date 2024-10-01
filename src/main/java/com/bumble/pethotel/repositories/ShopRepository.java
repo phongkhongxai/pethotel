@@ -14,6 +14,12 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     @Query("SELECT s FROM Shop s WHERE s.isDelete = false")
     Page<Shop> findAllNotDeleted(Pageable pageable);
 
-    Page<Shop> findByUserAndIsDeleteFalse(User user, Pageable pageable);
+    @Query("SELECT s FROM Shop s WHERE s.isDelete = false AND s.shopVerified = true")
+    Page<Shop> findAllNotDeletedAndVerified(Pageable pageable);
 
+    @Query("SELECT s FROM Shop s WHERE s.isDelete = false AND s.shopVerified = false")
+    Page<Shop> findAllNotDeletedAndNotVerified(Pageable pageable);
+
+    Page<Shop> findByUserAndIsDeleteFalse(User user, Pageable pageable);
+    Page<Shop> findByUserAndIsDeleteFalseAndShopVerifiedTrue(User user, Pageable pageable);
 }

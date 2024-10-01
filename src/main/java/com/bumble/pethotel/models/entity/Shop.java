@@ -26,6 +26,8 @@ public class Shop {
     @Column(nullable = false)
     private String description;
     @Column(nullable = false)
+    private boolean shopVerified;
+    @Column(nullable = false)
     private String accountNumber;
     @Column(nullable = false)
     private String bankName;

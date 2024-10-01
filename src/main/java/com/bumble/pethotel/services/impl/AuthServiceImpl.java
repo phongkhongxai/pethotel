@@ -163,6 +163,36 @@ public class AuthServiceImpl implements AuthService {
 
         return "User registered successfully! Please check your email for the verification code.";
     }
+    @Override
+    @Transactional
+    public String signupOwner(SignupDto signupDto) {
+
+        // add check if username already exists
+        if (userRepository.existsByUsername(signupDto.getUsername())) {
+            throw new PetApiException(HttpStatus.BAD_REQUEST, "Username is already exist!");
+        }
+
+        // add check if email already exists
+        if (userRepository.existsByEmail(signupDto.getEmail())) {
+            throw new PetApiException(HttpStatus.BAD_REQUEST, "Email is already exist!");
+        }
+
+        User user = modelMapper.map(signupDto, User.class);
+
+        user.setPassword(passwordEncoder.encode(signupDto.getPassword()));
+
+        Role userRole = roleRepository.findByRoleName("ROLE_OWNER")
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "User Role not found."));
+        user.setRole(userRole);
+        user.setEmailVerified(false);
+        user.setAvatarUrl("default");
+
+        User user1 = userRepository.save(user);
+        emailVerificationService.sendVerificationCode(user1);
+
+        return "User registered successfully! Please check your email for the verification code.";
+    }
+
 
     @Override
     public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {

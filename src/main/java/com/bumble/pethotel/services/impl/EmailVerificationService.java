@@ -1,5 +1,6 @@
 package com.bumble.pethotel.services.impl;
 
+import com.bumble.pethotel.models.entity.Shop;
 import com.bumble.pethotel.models.entity.User;
 import com.bumble.pethotel.repositories.UserRepository;
 import com.bumble.pethotel.utils.CodeGenerator;
@@ -29,6 +30,7 @@ public class EmailVerificationService {
         sendEmailVerify(user.getEmail(), code);
     }
 
+
     private void sendEmailVerify(String recipientEmail, String verificationCode) {
         String subject = "Email Verification Code";
         String message = "Your verification code is: " + verificationCode;
@@ -56,6 +58,26 @@ public class EmailVerificationService {
         String subject = "Password Reset Request";
         String message = "To reset your password, use the following token: " + resetToken;
 
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(recipientEmail);
+        email.setSubject(subject);
+        email.setText(message);
+        mailSender.send(email);
+    }
+
+    @Async
+    public void sendEmailNotify(Shop shop) {
+        String subject = "Shop Verification Notification";
+        String message = "Dear " + shop.getUser().getFullName() + ",\n\n"
+                + "We are pleased to inform you that your shop, " + shop.getName() + ", has been successfully verified.\n"
+                + "You can now manage your services and rooms.\n\n"
+                + "Best regards,\n"
+                + "Apehome Team";
+
+        sendEmail(shop.getUser().getEmail(), subject, message);
+    }
+
+    private void sendEmail(String recipientEmail, String subject, String message) {
         SimpleMailMessage email = new SimpleMailMessage();
         email.setTo(recipientEmail);
         email.setSubject(subject);

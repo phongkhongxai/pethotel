@@ -11,6 +11,7 @@ import com.bumble.pethotel.models.payload.responseModel.ShopsResponse;
 import com.bumble.pethotel.repositories.ShopRepository;
 import com.bumble.pethotel.repositories.UserRepository;
 import com.bumble.pethotel.services.ShopService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,8 @@ public class ShopServiceImpl implements ShopService {
     private ShopRepository shopRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EmailVerificationService emailVerificationService;
     @Override
     public ShopDto saveShop(ShopDto shopDto) {
         Optional<User> user = userRepository.findById(shopDto.getUserId());
@@ -39,6 +42,19 @@ public class ShopServiceImpl implements ShopService {
             throw new PetApiException(HttpStatus.NOT_FOUND, "User not found with id: "+ shopDto.getUserId());
         }
         Shop shop = modelMapper.map(shopDto, Shop.class);
+        shop.setShopVerified(true);
+        shop.setDelete(false);
+        return modelMapper.map(shopRepository.save(shop), ShopDto.class);
+    }
+
+    @Override
+    public ShopDto createShop(ShopDto shopDto) {
+        Optional<User> user = userRepository.findById(shopDto.getUserId());
+        if (user.isEmpty()){
+            throw new PetApiException(HttpStatus.NOT_FOUND, "User not found with id: "+ shopDto.getUserId());
+        }
+        Shop shop = modelMapper.map(shopDto, Shop.class);
+        shop.setShopVerified(false);
         shop.setDelete(false);
         return modelMapper.map(shopRepository.save(shop), ShopDto.class);
     }
@@ -61,7 +77,7 @@ public class ShopServiceImpl implements ShopService {
         // create Pageable instance
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<Shop> shops = shopRepository.findAllNotDeleted(pageable);
+        Page<Shop> shops = shopRepository.findAllNotDeletedAndVerified(pageable);
 
         // get content for page object
         List<Shop> listOfShops = shops.getContent();
@@ -80,6 +96,49 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public ShopsResponse getAllShopNotVerify(int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Shop> shops = shopRepository.findAllNotDeletedAndNotVerified(pageable);
+
+        // get content for page object
+        List<Shop> listOfShops = shops.getContent();
+
+        List<ShopDto> content = listOfShops.stream().map(bt -> modelMapper.map(bt, ShopDto.class)).collect(Collectors.toList());
+
+        ShopsResponse templatesResponse = new ShopsResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(shops.getNumber());
+        templatesResponse.setPageSize(shops.getSize());
+        templatesResponse.setTotalElements(shops.getTotalElements());
+        templatesResponse.setTotalPages(shops.getTotalPages());
+        templatesResponse.setLast(shops.isLast());
+
+        return templatesResponse;
+    }
+
+    @Override
+    @Transactional
+    public String verifyShop(Long id) {
+        Optional<Shop> shopOptional = shopRepository.findById(id);
+        if (shopOptional.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: " + id);
+        }
+        if (shopOptional.get().isShopVerified()) {
+            throw new PetApiException(HttpStatus.BAD_REQUEST, "Shop have been verified.");
+        }
+        Shop shop = shopOptional.get();
+        shop.setShopVerified(true);
+        shopRepository.save(shop);
+        emailVerificationService.sendEmailNotify(shop);
+        return "Verified successfully";
+    }
+
+    @Override
     public ShopsResponse getShopByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND,"User not found with id: "+ userId));
@@ -89,7 +148,7 @@ public class ShopServiceImpl implements ShopService {
         // create Pageable instance
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<Shop> shops = shopRepository.findByUserAndIsDeleteFalse(user,pageable);
+        Page<Shop> shops = shopRepository.findByUserAndIsDeleteFalseAndShopVerifiedTrue(user,pageable);
 
         // get content for page object
         List<Shop> listOfShops = shops.getContent();

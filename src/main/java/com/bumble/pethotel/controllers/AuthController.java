@@ -39,6 +39,12 @@ public class AuthController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PostMapping("/register-owner")
+    public ResponseEntity<String> signupOwner(@Valid @RequestBody SignupDto signupDto){
+        String response = authService.signupOwner(signupDto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponse> refreshToken(
             HttpServletRequest request,

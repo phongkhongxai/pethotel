@@ -23,12 +23,36 @@ public class ShopController {
     @Autowired
     private ShopService shopService;
     @SecurityRequirement(name = "Bear Authentication")
-    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
-    @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/admins")
     public ResponseEntity<?> createShop(@Valid @RequestBody ShopDto shopDto) {
         ShopDto pt = shopService.saveShop(shopDto);
         return new ResponseEntity<>(pt, HttpStatus.CREATED);
     }
+    @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_OWNER')")
+    @PostMapping
+    public ResponseEntity<?> createShopByOwner(@Valid @RequestBody ShopDto shopDto) {
+        ShopDto pt = shopService.createShop(shopDto);
+        return new ResponseEntity<>(pt, HttpStatus.CREATED);
+    }
+    @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/verify/{id}")
+    public ResponseEntity<?> verifyShop(@PathVariable("id") Long id) {
+        String msg = shopService.verifyShop(id);
+        return new ResponseEntity<>(msg, HttpStatus.OK);
+    }
+    @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/not-verify")
+    public ShopsResponse getAllShopsNotVerified(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                     @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                     @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                     @RequestParam(value = "sortDir", defaultValue = "desc", required = false) String sortDir){
+        return shopService.getAllShopNotVerify(pageNo, pageSize, sortBy, sortDir);
+    }
+
     @GetMapping
     public ShopsResponse getAllShops(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
                                      @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
