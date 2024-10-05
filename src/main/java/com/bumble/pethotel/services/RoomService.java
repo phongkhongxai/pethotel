@@ -6,6 +6,7 @@ import com.bumble.pethotel.models.payload.requestModel.CareServiceUpdated;
 import com.bumble.pethotel.models.payload.requestModel.CreateRoomRequest;
 import com.bumble.pethotel.models.payload.requestModel.RoomUpdatedRequest;
 import com.bumble.pethotel.models.payload.responseModel.CareServicesResponse;
+import com.bumble.pethotel.models.payload.responseModel.RoomsAvailableResponse;
 import com.bumble.pethotel.models.payload.responseModel.RoomsResponse;
 
 import java.util.List;
@@ -17,5 +18,5 @@ public interface RoomService {
     RoomsResponse getRoomByShop(Long shopId, int pageNo, int pageSize, String sortBy, String sortDir);
     RoomDto updateRoomStatus(Long id, String status);
     String deleteRoom(Long id);
-    long countRoomsByStatusAndSign(String status, String sign);
+    List<RoomsAvailableResponse> getAvailableRoomsBySignAndAmountOfShop(Long shopId);
 }

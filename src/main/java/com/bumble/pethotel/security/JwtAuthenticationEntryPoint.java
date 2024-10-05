@@ -1,21 +1,42 @@
 package com.bumble.pethotel.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint.class);
+
     @Override
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-    // send back to client the stack trace of error
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+        logger.error("Unauthorized error: {}", authException.getMessage());
+
+        // Build a custom JSON response
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+        // Create the response body
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+        responseBody.put("error", "Unauthorized");
+        responseBody.put("message", authException.getMessage());
+        responseBody.put("path", request.getServletPath());
+
+        // Write the JSON response
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(response.getOutputStream(), responseBody);
     }
 }

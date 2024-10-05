@@ -1,12 +1,10 @@
 package com.bumble.pethotel.services.impl;
 
-import com.bumble.pethotel.models.entity.CareService;
-import com.bumble.pethotel.models.entity.Room;
-import com.bumble.pethotel.models.entity.RoomType;
-import com.bumble.pethotel.models.entity.Shop;
+import com.bumble.pethotel.models.entity.*;
 import com.bumble.pethotel.models.exception.PetApiException;
 import com.bumble.pethotel.models.payload.dto.RoomDto;
 import com.bumble.pethotel.models.payload.requestModel.CreateRoomRequest;
+import com.bumble.pethotel.models.payload.responseModel.RoomsAvailableResponse;
 import com.bumble.pethotel.models.payload.responseModel.RoomsResponse;
 import com.bumble.pethotel.repositories.RoomRepository;
 import com.bumble.pethotel.repositories.RoomTypeRepository;
@@ -167,7 +165,22 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public long countRoomsByStatusAndSign(String status, String sign) {
-        return roomRepository.countByStatusAndSignContainingIgnoreCase(status, sign);
+    public List<RoomsAvailableResponse> getAvailableRoomsBySignAndAmountOfShop(Long shopId) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND,"Pet not found"));
+        List<String> signs = roomRepository.findDistinctSignByShopId(shop.getId());
+        List<RoomsAvailableResponse> rooms = new ArrayList<>();
+        if (!signs.isEmpty()){
+            for(String sign : signs){
+                List<Room> availableRooms = roomRepository.findAvailableRoomsBySignAndStatus(sign,"available");
+                long amout = roomRepository.countAvailableRoomsBySignAndStatus(sign,"available");
+                Room room = availableRooms.get(0);
+                RoomsAvailableResponse roomsAvailableResponse = new RoomsAvailableResponse(room.getName(),room.getDescription(),room.getSign(),room.getPrice(),amout);
+                rooms.add(roomsAvailableResponse);
+            }
+        }
+        return rooms;
     }
+
+
 }

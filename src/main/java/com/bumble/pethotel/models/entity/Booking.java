@@ -20,13 +20,13 @@ public class Booking {
     @Column(name="booking_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String type;
 
     @Column(nullable = false)
     private LocalDate startDate ;
 
-    @Column(nullable = false)
+    @Column
     private LocalDate endDate;
 
     @Column(nullable = false)
@@ -38,7 +38,10 @@ public class Booking {
     @Column
     private double discount;
 
-    @Column(nullable = false)
+    @Column
+    private String note;
+
+    @Column
     private LocalDateTime dateBooking;
 
     @Column(nullable = false)

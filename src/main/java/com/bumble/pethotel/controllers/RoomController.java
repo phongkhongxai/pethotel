@@ -5,6 +5,7 @@ import com.bumble.pethotel.models.payload.dto.RoomDto;
 import com.bumble.pethotel.models.payload.requestModel.CareServiceUpdated;
 import com.bumble.pethotel.models.payload.requestModel.CreateRoomRequest;
 import com.bumble.pethotel.models.payload.responseModel.CareServicesResponse;
+import com.bumble.pethotel.models.payload.responseModel.RoomsAvailableResponse;
 import com.bumble.pethotel.models.payload.responseModel.RoomsResponse;
 import com.bumble.pethotel.services.RoomService;
 import com.bumble.pethotel.utils.AppConstants;
@@ -45,6 +46,12 @@ public class RoomController {
                                                   @PathVariable("shopId") Long shopId){
         return roomService.getRoomByShop(shopId,pageNo, pageSize, sortBy, sortDir);
     }
+
+    @GetMapping("/available/shops/{shopId}")
+    public ResponseEntity<?> getRoomsOfShopAvailable(@PathVariable("shopId") Long shopId){
+        List<RoomsAvailableResponse> list = roomService.getAvailableRoomsBySignAndAmountOfShop(shopId);
+        return new ResponseEntity<>(list, HttpStatus.OK);
+    }
     @GetMapping("/{id}")
     public ResponseEntity<?> getRoomById(@PathVariable("id") Long id) {
         RoomDto roomDto = roomService.getRoomById(id);
@@ -53,7 +60,7 @@ public class RoomController {
 
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
-    @PutMapping("/{id}")
+    @PutMapping("/{id}")  // "available", "occupied", "maintenance", "closed"
     public ResponseEntity<?> updateStatusOfRoom(@PathVariable("id") Long id, @RequestParam(value = "status") String status ) {
         RoomDto bt1 = roomService.updateRoomStatus(id, status);
         return new ResponseEntity<>(bt1, HttpStatus.OK);

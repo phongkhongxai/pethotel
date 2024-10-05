@@ -11,10 +11,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PetUpdated {
     private String name;
-    private int age;
+    private double age;
     private String breed;
     private String color;
-    private int weight;
+    private double weight;
     private String gender;
     private Long petTypeId;
 }

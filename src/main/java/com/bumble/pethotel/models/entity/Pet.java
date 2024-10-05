@@ -20,13 +20,13 @@ public class Pet {
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
-    private int age;
+    private double age;
     @Column(nullable = false)
     private String breed;
     @Column(nullable = false)
     private String color;
     @Column(nullable = false)
-    private int weight;
+    private double weight;
     @Column(nullable = false)
     private String gender;
     @ManyToOne
