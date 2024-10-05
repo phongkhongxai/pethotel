@@ -37,6 +37,8 @@ public class BookingServiceImpl implements BookingService {
     private CareServiceRepository careServiceRepository;
     @Autowired
     private RoomRepository roomRepository;
+    @Autowired
+    private ShopRepository shopRepository;
 
     @Override
     public BookingDto createBooking(BookingDto bookingDto) {
@@ -58,6 +60,9 @@ public class BookingServiceImpl implements BookingService {
         }
         double totalPrice = 0;
         boolean hasRoom = false;
+
+        Long shopId = null;
+
         if (bookingDto.getRoomId() != null) {
             Room room = roomRepository.findById(bookingDto.getRoomId())
                     .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND,"Room not found"));
@@ -66,7 +71,7 @@ public class BookingServiceImpl implements BookingService {
             if (daysBetween <= 0) {
                 throw new PetApiException(HttpStatus.BAD_REQUEST,"End date must be after start date");
             }
-
+            shopId = room.getShop().getId();
             double roomPrice = room.getPrice() * daysBetween;
             totalPrice += roomPrice;  // Cộng giá phòng vào tổng giá
             bookingBuilder.room(room);  // Gán Room vào Booking
@@ -81,6 +86,15 @@ public class BookingServiceImpl implements BookingService {
             bookingBuilder.careServices(careServices);
             for (CareService service : careServices) {
                 totalPrice += service.getPrice();
+
+                // Kiểm tra shopId của các Service
+                if (shopId != null && !service.getShop().getId().equals(shopId)) {
+                    throw new PetApiException(HttpStatus.BAD_REQUEST, "Room and Service must belong to the same shop");
+                }
+                // Nếu chưa có shopId (chỉ có dịch vụ mà không có room), gán shopId của service
+                if (shopId == null) {
+                    shopId = service.getShop().getId();
+                }
             }
             hasService = true;
         }
@@ -147,6 +161,36 @@ public class BookingServiceImpl implements BookingService {
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         Page<Booking> bookings = bookingRepository.findByUserAndIsDeleteFalse(userOptional.get(),pageable);
+
+
+        List<Booking> listOfBookings = bookings.getContent();
+
+        List<BookingDto> content = listOfBookings.stream().map(bt -> modelMapper.map(bt, BookingDto.class)).collect(Collectors.toList());
+
+        BookingsResponse templatesResponse = new BookingsResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(bookings.getNumber());
+        templatesResponse.setPageSize(bookings.getSize());
+        templatesResponse.setTotalElements(bookings.getTotalElements());
+        templatesResponse.setTotalPages(bookings.getTotalPages());
+        templatesResponse.setLast(bookings.isLast());
+
+        return templatesResponse;
+    }
+
+    @Override
+    public BookingsResponse getAllBookingsOfShop(Long shopId, int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Optional<Shop> shopOptional = shopRepository.findById(shopId);
+        if (shopOptional.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND,"Shop not found by id: ."+ shopId);
+        }
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Booking> bookings = bookingRepository.findByShopIdAndIsDeleteFalse(shopOptional.get().getId(),pageable);
 
 
         List<Booking> listOfBookings = bookings.getContent();
