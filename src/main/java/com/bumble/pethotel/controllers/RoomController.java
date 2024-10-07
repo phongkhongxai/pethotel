@@ -52,6 +52,12 @@ public class RoomController {
         List<RoomsAvailableResponse> list = roomService.getAvailableRoomsBySignAndAmountOfShop(shopId);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
+
+    @GetMapping("/available/shops/random-room-by-sign")
+    public ResponseEntity<?> getRandomRoomsOfShopBySign(@RequestParam String sign){
+        RoomDto room = roomService.findRandomAvailableRoomBySignAndStatus(sign);
+        return new ResponseEntity<>(room, HttpStatus.OK);
+    }
     @GetMapping("/{id}")
     public ResponseEntity<?> getRoomById(@PathVariable("id") Long id) {
         RoomDto roomDto = roomService.getRoomById(id);

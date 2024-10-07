@@ -108,6 +108,39 @@ public class CareServicesServiceImpl implements CareServicesService {
     }
 
     @Override
+    public CareServicesResponse getCareServiceByShopAndType(Long shopId, String type, int pageNo, int pageSize, String sortBy, String sortDir) {
+        Optional<Shop> shop = shopRepository.findById(shopId);
+        if (shop.isEmpty()){
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: "+ shopId);
+        }
+        if (!type.equalsIgnoreCase("spa") && !type.equalsIgnoreCase("health")) {
+            throw new PetApiException(HttpStatus.BAD_REQUEST, "Invalid care service type. Only 'spa' and 'health' are allowed.");
+        }
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<CareService> careServices = careServiceRepository.findByShopAndTypeAndIsDeleteFalse(shop.get(),type,pageable);
+
+        // get content for page object
+        List<CareService> listOfServices = careServices.getContent();
+
+        List<CareServiceDto> content = listOfServices.stream().map(bt -> modelMapper.map(bt, CareServiceDto.class)).collect(Collectors.toList());
+
+        CareServicesResponse templatesResponse = new CareServicesResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(careServices.getNumber());
+        templatesResponse.setPageSize(careServices.getSize());
+        templatesResponse.setTotalElements(careServices.getTotalElements());
+        templatesResponse.setTotalPages(careServices.getTotalPages());
+        templatesResponse.setLast(careServices.isLast());
+
+        return templatesResponse;
+    }
+
+    @Override
     public CareServiceDto updateCareService(Long id, CareServiceUpdated careServiceUpdated) {
         Optional<CareService> careServiceOptional = careServiceRepository.findById(id);
         if (careServiceOptional.isEmpty()) {

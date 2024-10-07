@@ -26,6 +26,8 @@ public class CareService {
 
     @Column(nullable = false)
     private String status;
+    @Column(nullable = false)
+    private String type;
 
     @Column(nullable = false)
     private double price;

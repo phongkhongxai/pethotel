@@ -19,4 +19,5 @@ public interface RoomService {
     RoomDto updateRoomStatus(Long id, String status);
     String deleteRoom(Long id);
     List<RoomsAvailableResponse> getAvailableRoomsBySignAndAmountOfShop(Long shopId);
+    RoomDto findRandomAvailableRoomBySignAndStatus(String sign);
 }

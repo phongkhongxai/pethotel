@@ -45,6 +45,22 @@ public class CareServicesController {
                                        @PathVariable("shopId") Long shopId){
         return careServicesService.getCareServiceByShop(shopId,pageNo, pageSize, sortBy, sortDir);
     }
+    @GetMapping("/shops/health/{shopId}/")
+    public CareServicesResponse getServiceByShopAndTypeHealth(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                                              @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                                              @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                                              @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
+                                                              @PathVariable("shopId") Long shopId){
+        return careServicesService.getCareServiceByShopAndType(shopId, "health",pageNo, pageSize, sortBy, sortDir);
+    }
+    @GetMapping("/shops/spa/{shopId}/")
+    public CareServicesResponse getServiceByShopAndTypeSpa(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                                              @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                                              @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                                              @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
+                                                              @PathVariable("shopId") Long shopId){
+        return careServicesService.getCareServiceByShopAndType(shopId, "spa",pageNo, pageSize, sortBy, sortDir);
+    }
     @GetMapping("/{id}")
     public ResponseEntity<?> getServiceById(@PathVariable("id") Long id) {
         CareServiceDto careServiceDto = careServicesService.getCareServiceById(id);

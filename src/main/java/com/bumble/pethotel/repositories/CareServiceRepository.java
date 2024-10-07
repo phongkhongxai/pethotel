@@ -14,4 +14,6 @@ public interface CareServiceRepository extends JpaRepository<CareService, Long> 
     Page<CareService> findAllNotDeleted(Pageable pageable);
 
     Page<CareService> findByShopAndIsDeleteFalse(Shop shop, Pageable pageable);
+
+    Page<CareService> findByShopAndTypeAndIsDeleteFalse(Shop shop, String type, Pageable pageable);
 }

@@ -182,5 +182,12 @@ public class RoomServiceImpl implements RoomService {
         return rooms;
     }
 
+    @Override
+    public RoomDto findRandomAvailableRoomBySignAndStatus(String sign) {
+        Room randomRoom = roomRepository.findRandomAvailableRoomBySignAndStatus(sign, "available")
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "No available rooms found"));
+        return modelMapper.map(randomRoom, RoomDto.class);
+    }
+
 
 }
