@@ -61,7 +61,7 @@ public class PaymentController {
     public ObjectNode getOrderById(@PathVariable("orderId") long orderId) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode response = objectMapper.createObjectNode();
-        PaymentLinkData.PaymentLinkDataBuilder
+
         try {
             PaymentLinkData order = payOS.getPaymentLinkInformation(orderId);
 
