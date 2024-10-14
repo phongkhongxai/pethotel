@@ -52,7 +52,6 @@ public class RoomController {
         List<RoomsAvailableResponse> list = roomService.getAvailableRoomsBySignAndAmountOfShop(shopId);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
-
     @GetMapping("/available/shops/random-room-by-sign")
     public ResponseEntity<?> getRandomRoomsOfShopBySign(@RequestParam String sign){
         RoomDto room = roomService.findRandomAvailableRoomBySignAndStatus(sign);
@@ -71,7 +70,6 @@ public class RoomController {
         RoomDto bt1 = roomService.updateRoomStatus(id, status);
         return new ResponseEntity<>(bt1, HttpStatus.OK);
     }
-
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")

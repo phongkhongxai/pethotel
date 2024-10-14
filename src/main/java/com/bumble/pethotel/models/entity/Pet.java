@@ -42,4 +42,6 @@ public class Pet {
 
     @Column(nullable = false)
     private boolean isDelete = false;
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ImageFile> imageFile;
 }

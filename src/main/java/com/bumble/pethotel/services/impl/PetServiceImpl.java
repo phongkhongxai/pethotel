@@ -1,9 +1,6 @@
 package com.bumble.pethotel.services.impl;
 
-import com.bumble.pethotel.models.entity.Pet;
-import com.bumble.pethotel.models.entity.PetType;
-import com.bumble.pethotel.models.entity.Shop;
-import com.bumble.pethotel.models.entity.User;
+import com.bumble.pethotel.models.entity.*;
 import com.bumble.pethotel.models.exception.PetApiException;
 import com.bumble.pethotel.models.payload.dto.PetDto;
 import com.bumble.pethotel.models.payload.dto.ShopDto;
@@ -13,6 +10,7 @@ import com.bumble.pethotel.models.payload.responseModel.ShopsResponse;
 import com.bumble.pethotel.repositories.PetRepository;
 import com.bumble.pethotel.repositories.PetTypeRepository;
 import com.bumble.pethotel.repositories.UserRepository;
+import com.bumble.pethotel.services.CloudinaryService;
 import com.bumble.pethotel.services.PetService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +20,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class PetServiceImpl implements PetService {
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private CloudinaryService cloudinaryService;
     @Autowired
     private PetRepository petRepository;
     @Autowired
@@ -138,6 +142,46 @@ public class PetServiceImpl implements PetService {
         }
         Pet updatedPet = petRepository.save(pet);
         return modelMapper.map(updatedPet, PetDto.class);
+    }
+
+    @Override
+    public String uploadImagePet(Long id, List<MultipartFile> files) {
+        // Check if the shop exists
+        Optional<Pet> pet = petRepository.findById(id);
+        if (pet.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Pet not found with id: " + id);
+        }
+        Pet pet1 = pet.get();
+
+        List<String> uploadedUrls = cloudinaryService.uploadFiles(files, "pets/" + id);
+
+        // Save the image URLs to the shop entity
+        Set<ImageFile> imageFiles = new HashSet<>();
+        for (String url : uploadedUrls) {
+            if (!"default".equals(url)) {
+                ImageFile imageFile = ImageFile.builder()
+                        .url(url)
+                        .pet(pet1)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                imageFiles.add(imageFile);
+            }
+        }
+
+        pet1.getImageFile().addAll(imageFiles);
+        petRepository.save(pet1);
+
+        return "Successfully uploaded " + uploadedUrls.size() + " image(s) for pet with id: " + id;
+    }
+
+    @Override
+    public Set<ImageFile> getImagePet(Long id) {
+        Optional<Pet> pet1 = petRepository.findById(id);
+        if (pet1.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Pet not found with id: " + id);
+        }
+        Pet pet = pet1.get();
+        return pet.getImageFile();
     }
 
     @Override

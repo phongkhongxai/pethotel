@@ -1,5 +1,6 @@
 package com.bumble.pethotel.controllers;
 
+import com.bumble.pethotel.models.entity.ImageFile;
 import com.bumble.pethotel.models.payload.dto.PetDto;
 import com.bumble.pethotel.models.payload.dto.ShopDto;
 import com.bumble.pethotel.models.payload.requestModel.PetUpdated;
@@ -16,6 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/shops")
@@ -80,6 +85,18 @@ public class ShopController {
     public ResponseEntity<?> updateShop(@PathVariable("id") Long id, @Valid @RequestBody ShopUpdated shopUpdated) {
         ShopDto bt1 = shopService.updateShop(id, shopUpdated);
         return new ResponseEntity<>(bt1, HttpStatus.OK);
+    }
+    @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
+    @PutMapping("/images/{id}")
+    public ResponseEntity<?> uploadImage(@PathVariable("id") Long id, @RequestParam("files") List<MultipartFile> files) {
+        String msg = shopService.uploadImageShop(id, files);
+        return new ResponseEntity<>(msg, HttpStatus.OK);
+    }
+    @GetMapping("/images/{id}")
+    public ResponseEntity<?> getImageShop(@PathVariable("id") Long id) {
+        Set<ImageFile> images = shopService.getImageShop(id);
+        return new ResponseEntity<>(images, HttpStatus.OK);
     }
 
     @SecurityRequirement(name = "Bear Authentication")

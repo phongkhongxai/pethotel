@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,4 +39,5 @@ public class ShopDto {
 
     @NotNull(message = "User ID is required")
     private Long userId;
+    private Set<CareServiceDto> services;
 }

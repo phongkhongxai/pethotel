@@ -1,5 +1,6 @@
 package com.bumble.pethotel.services.impl;
 
+import com.bumble.pethotel.models.entity.ImageFile;
 import com.bumble.pethotel.models.entity.Pet;
 import com.bumble.pethotel.models.entity.Shop;
 import com.bumble.pethotel.models.entity.User;
@@ -10,6 +11,7 @@ import com.bumble.pethotel.models.payload.requestModel.ShopUpdated;
 import com.bumble.pethotel.models.payload.responseModel.ShopsResponse;
 import com.bumble.pethotel.repositories.ShopRepository;
 import com.bumble.pethotel.repositories.UserRepository;
+import com.bumble.pethotel.services.CloudinaryService;
 import com.bumble.pethotel.services.ShopService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -20,9 +22,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +37,8 @@ public class ShopServiceImpl implements ShopService {
     private ModelMapper modelMapper;
     @Autowired
     private ShopRepository shopRepository;
+    @Autowired
+    private CloudinaryService cloudinaryService;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -201,4 +209,46 @@ public class ShopServiceImpl implements ShopService {
         shopRepository.save(shop);
         return "Deleted successfully";
     }
+
+    @Override
+    public String uploadImageShop(Long id, List<MultipartFile> files) {
+        // Check if the shop exists
+        Optional<Shop> shopOptional = shopRepository.findById(id);
+        if (shopOptional.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: " + id);
+        }
+        Shop shop = shopOptional.get();
+
+        // Upload the files to Cloudinary and get the URLs
+        List<String> uploadedUrls = cloudinaryService.uploadFiles(files, "shops/" + id);
+
+        // Save the image URLs to the shop entity
+        Set<ImageFile> imageFiles = new HashSet<>();
+        for (String url : uploadedUrls) {
+            if (!"default".equals(url)) {
+                ImageFile imageFile = ImageFile.builder()
+                        .url(url)
+                        .shop(shop)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                imageFiles.add(imageFile);
+            }
+        }
+
+        shop.getImageFile().addAll(imageFiles);
+        shopRepository.save(shop);
+
+        return "Successfully uploaded " + uploadedUrls.size() + " image(s) for shop with id: " + id;
+    }
+
+    @Override
+    public Set<ImageFile> getImageShop(Long id) {
+        Optional<Shop> shopOptional = shopRepository.findById(id);
+        if (shopOptional.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: " + id);
+        }
+        Shop shop = shopOptional.get();
+        return shop.getImageFile();
+    }
+
 }

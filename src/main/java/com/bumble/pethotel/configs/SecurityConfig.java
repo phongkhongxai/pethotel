@@ -79,6 +79,13 @@ public class SecurityConfig {
                                 .requestMatchers("/no-auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
+                                .requestMatchers("/success").permitAll()
+                                .requestMatchers("/cancel").permitAll()
+                                .requestMatchers("/api/v1/payment/payos_webhook").permitAll()
+                                .requestMatchers("/api/v1/payment/confirm-webhook").permitAll()
+                                .requestMatchers(HttpMethod.PUT,"/api/v1/payment/{orderId}").permitAll()
+
+
                                 .anyRequest().authenticated()
                 ).exceptionHandling((exception) -> exception
                         .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)

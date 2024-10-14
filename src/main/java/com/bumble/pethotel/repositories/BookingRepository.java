@@ -5,8 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
+@Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT p FROM Booking p WHERE p.isDelete = false")
     Page<Booking> findAllNotDeleted(Pageable pageable);
@@ -17,5 +22,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "WHERE (r.shop.id = :shopId OR cs.shop.id = :shopId) AND b.isDelete = false")
     Page<Booking> findByShopIdAndIsDeleteFalse(@Param("shopId") Long shopId, Pageable pageable);
 
-
+    Optional<Booking> findByPayments_OrderCode(Long orderCode);
 }

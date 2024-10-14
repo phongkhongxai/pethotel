@@ -26,6 +26,12 @@ public class Payment {
     private boolean isDelete = false;
     @Column(nullable = false)
     private double amount;
+    @Column(nullable = false)
+    private String status;
+    @Column
+    private String qrCodeUrl;
+    @Column
+    private Long orderCode;
     @ManyToOne
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;

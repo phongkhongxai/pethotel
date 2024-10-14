@@ -1,10 +1,15 @@
 package com.bumble.pethotel.services;
 
+import com.bumble.pethotel.models.entity.ImageFile;
 import com.bumble.pethotel.models.payload.dto.PetDto;
 import com.bumble.pethotel.models.payload.dto.ShopDto;
 import com.bumble.pethotel.models.payload.requestModel.ShopUpdated;
 import com.bumble.pethotel.models.payload.responseModel.PetsResponese;
 import com.bumble.pethotel.models.payload.responseModel.ShopsResponse;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Set;
 
 public interface ShopService {
     ShopDto saveShop(ShopDto shopDto);
@@ -17,5 +22,7 @@ public interface ShopService {
     ShopsResponse getShopByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortDir);
     ShopDto updateShop(Long id, ShopUpdated shopUpdated);
     String deleteShop(Long id);
+    String uploadImageShop(Long id, List<MultipartFile> files);
+    Set<ImageFile> getImageShop(Long id);
 
 }
