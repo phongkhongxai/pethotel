@@ -1,7 +1,10 @@
 package com.bumble.pethotel.controllers;
 
 
+import com.bumble.pethotel.models.payload.responseModel.PaymentsResponse;
+import com.bumble.pethotel.models.payload.responseModel.PetsResponese;
 import com.bumble.pethotel.services.PaymentService;
+import com.bumble.pethotel.utils.AppConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -122,6 +125,23 @@ public class PaymentController {
     public ResponseEntity<?> updateStatusPayment(@PathVariable("id") Long orderCode,@RequestParam String status) {
         String msg = paymentService.updateStatusPayment(orderCode, status);
         return new ResponseEntity<>(msg, HttpStatus.OK);
+    }
+    @GetMapping("/shops/{shopId}")
+    public PaymentsResponse getAllSuccessPaymentsOfShop(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                          @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                          @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                          @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
+                                          @PathVariable("shopId") Long shopId){
+        return paymentService.getAllSuccessPaymentsOfShop(shopId,pageNo, pageSize, sortBy, sortDir);
+    }
+
+    @GetMapping("/total")
+    public PaymentsResponse getPetsByUser(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                          @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                          @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                          @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir
+                                         ){
+        return paymentService.getAllPayments(pageNo, pageSize, sortBy, sortDir);
     }
 
 

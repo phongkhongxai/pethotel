@@ -2,11 +2,13 @@ package com.bumble.pethotel.services.impl;
 
 import com.bumble.pethotel.models.entity.Booking;
 import com.bumble.pethotel.models.entity.Payment;
+import com.bumble.pethotel.models.entity.Shop;
 import com.bumble.pethotel.models.exception.PetApiException;
 import com.bumble.pethotel.models.payload.dto.PaymentDto;
 import com.bumble.pethotel.models.payload.responseModel.PaymentsResponse;
 import com.bumble.pethotel.repositories.BookingRepository;
 import com.bumble.pethotel.repositories.PaymentRepository;
+import com.bumble.pethotel.repositories.ShopRepository;
 import com.bumble.pethotel.repositories.UserRepository;
 import com.bumble.pethotel.services.PaymentService;
 import org.modelmapper.ModelMapper;
@@ -38,6 +40,8 @@ public class PaymentServiceImpl implements PaymentService {
     private BookingRepository bookingRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ShopRepository shopRepository;
     @Autowired
     private PayOS payOS;
     @Override
@@ -127,6 +131,7 @@ public class PaymentServiceImpl implements PaymentService {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
+
         // create Pageable instance
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
@@ -144,6 +149,39 @@ public class PaymentServiceImpl implements PaymentService {
         templatesResponse.setTotalElements(payments.getTotalElements());
         templatesResponse.setTotalPages(payments.getTotalPages());
         templatesResponse.setLast(payments.isLast());
+        Double totalRevenue = paymentRepository.calculateTotalRevenueForSystem();
+        templatesResponse.setTotalRevenue(totalRevenue != null ? totalRevenue : 0.0);
+
+        return templatesResponse;
+    }
+
+    @Override
+    public PaymentsResponse getAllSuccessPaymentsOfShop(Long shopId, int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "Shop not found"));
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Payment> payments = paymentRepository.findPaymentsByShop(shop.getId(),pageable);
+
+        // get content for page object
+        List<Payment> listOfPayment = payments.getContent();
+
+        List<PaymentDto> content = listOfPayment.stream().map(bt -> modelMapper.map(bt, PaymentDto.class)).collect(Collectors.toList());
+
+        PaymentsResponse templatesResponse = new PaymentsResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(payments.getNumber());
+        templatesResponse.setPageSize(payments.getSize());
+        templatesResponse.setTotalElements(payments.getTotalElements());
+        templatesResponse.setTotalPages(payments.getTotalPages());
+        templatesResponse.setLast(payments.isLast());
+        Double totalRevenue = paymentRepository.calculateTotalRevenueByShop(shop.getId());
+        templatesResponse.setTotalRevenue(totalRevenue != null ? totalRevenue : 0.0);
+
 
         return templatesResponse;
     }
@@ -168,7 +206,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment1 = payment.get();
         payment1.setStatus(status);
         paymentRepository.save(payment1);
-        if (status.equalsIgnoreCase("Success")) {
+        if (status.equalsIgnoreCase("SUCCESS")) {
             // Tìm Booking liên quan đến Payment
             Optional<Booking> booking = bookingRepository.findByPayments_OrderCode(payment1.getOrderCode());
             if (booking.isEmpty()) {
@@ -176,7 +214,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
  
             Booking booking1 = booking.get();
-            booking1.setStatus("Completed"); // Hoặc trạng thái thích hợp cho Booking
+            booking1.setStatus("COMPLETED"); // Hoặc trạng thái thích hợp cho Booking
             bookingRepository.save(booking1);
         }
 

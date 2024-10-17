@@ -14,6 +14,7 @@ import java.util.List;
 @Setter
 public class PaymentsResponse {
     private List<PaymentDto> content;
+    private double totalRevenue;
     private int pageNo;
     private int pageSize;
     private long totalElements;

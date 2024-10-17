@@ -8,6 +8,7 @@ public interface PaymentService {
     PaymentDto createPayment(PaymentDto paymentDto);
     CheckoutResponseData createPaymentLink(Long bookingId);
     PaymentsResponse getAllPayments(int pageNo, int pageSize, String sortBy, String sortDir);
+    PaymentsResponse getAllSuccessPaymentsOfShop(Long shopId,int pageNo, int pageSize, String sortBy, String sortDir);
     PaymentDto getPaymentById(Long id);
 
     String updateStatusPayment(Long id, String status);

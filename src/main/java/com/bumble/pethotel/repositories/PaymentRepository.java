@@ -19,4 +19,34 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.orderCode = :orderCode AND p.isDelete = false")
     Optional<Payment> findByOrderCode(@Param("orderCode") Long orderCode);
 
+
+    // Tìm tất cả các Payment theo shopId với status là Success và không bị xóa (phân trang)
+    @Query("""
+        SELECT p FROM Payment p 
+        LEFT JOIN p.booking.room r 
+        LEFT JOIN p.booking.careServices cs
+        WHERE p.isDelete = false 
+          AND p.status = 'SUCCESS'
+          AND (r.shop.id = :shopId OR cs.shop.id = :shopId)
+        """)
+    Page<Payment> findPaymentsByShop(@Param("shopId") Long shopId, Pageable pageable);
+
+
+
+    // Thống kê tổng doanh thu của shop
+    @Query("""
+        SELECT SUM(p.amount) FROM Payment p 
+        LEFT JOIN p.booking.room r 
+        LEFT JOIN p.booking.careServices cs
+        WHERE p.isDelete = false 
+          AND p.status = 'SUCCESS'
+          AND (r.shop.id = :shopId OR cs.shop.id = :shopId)
+        """)
+    Double calculateTotalRevenueByShop(@Param("shopId") Long shopId);
+
+
+
+    // Thống kê tổng doanh thu của toàn bộ hệ thống với status là Success
+    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = 'SUCCESS' AND p.isDelete = false")
+    Double calculateTotalRevenueForSystem();
 }
