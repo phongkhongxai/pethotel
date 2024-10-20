@@ -80,13 +80,11 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }*/
 
-    public CheckoutResponseData createPaymentLink(Long bookingId) {
+    public CheckoutResponseData createPaymentLink(Long bookingId, String returnUrl, String cancelUrl) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "Booking not found"));
         // Gọi API để tạo yêu cầu thanh toán với PayOS
         String description = "Thanh toán đơn hàng #" + bookingId;
-        String returnUrl = "http:localhost:8080/success";
-        String cancelUrl = "http:localhost:8080/cancel";
 
         String currentTimeString = String.valueOf(new Date().getTime());
         long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));

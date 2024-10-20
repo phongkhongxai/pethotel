@@ -36,8 +36,8 @@ public class PaymentController {
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
     @PostMapping("/create-paymentlink/booking/{id}")
-    public ResponseEntity<?> createPayment(@PathVariable("id") Long bookingId) {
-        return ResponseEntity.ok(paymentService.createPaymentLink(bookingId));
+    public ResponseEntity<?> createPayment(@PathVariable("id") Long bookingId, @RequestParam String returnUrl, @RequestParam String cancelUrl) {
+        return ResponseEntity.ok(paymentService.createPaymentLink(bookingId,returnUrl,cancelUrl));
     }
 
 
