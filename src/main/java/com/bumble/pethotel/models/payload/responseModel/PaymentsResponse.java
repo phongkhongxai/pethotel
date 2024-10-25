@@ -15,6 +15,7 @@ import java.util.List;
 public class PaymentsResponse {
     private List<PaymentDto> content;
     private double totalRevenue;
+    private double commission;
     private int pageNo;
     private int pageSize;
     private long totalElements;

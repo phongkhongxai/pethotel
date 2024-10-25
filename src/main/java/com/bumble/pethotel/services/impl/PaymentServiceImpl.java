@@ -149,6 +149,9 @@ public class PaymentServiceImpl implements PaymentService {
         templatesResponse.setLast(payments.isLast());
         Double totalRevenue = paymentRepository.calculateTotalRevenueForSystem();
         templatesResponse.setTotalRevenue(totalRevenue != null ? totalRevenue : 0.0);
+        Double commission = paymentRepository.calculateTotalCommissionForSystem();
+        templatesResponse.setCommission(commission != null ? commission : 0.0);
+
 
         return templatesResponse;
     }
@@ -179,6 +182,8 @@ public class PaymentServiceImpl implements PaymentService {
         templatesResponse.setLast(payments.isLast());
         Double totalRevenue = paymentRepository.calculateTotalRevenueByShop(shop.getId());
         templatesResponse.setTotalRevenue(totalRevenue != null ? totalRevenue : 0.0);
+        Double commission = paymentRepository.calculateCommissionByShop(shop.getId());
+        templatesResponse.setCommission(commission != null ? commission : 0.0);
 
 
         return templatesResponse;

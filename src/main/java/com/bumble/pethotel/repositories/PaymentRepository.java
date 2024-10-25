@@ -44,9 +44,23 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
         """)
     Double calculateTotalRevenueByShop(@Param("shopId") Long shopId);
 
+    @Query("""
+    SELECT SUM(p.amount * 0.1) FROM Payment p 
+    LEFT JOIN p.booking.room r 
+    LEFT JOIN p.booking.careServices cs
+    WHERE p.isDelete = false 
+      AND p.status = 'SUCCESS'
+      AND (r.shop.id = :shopId OR cs.shop.id = :shopId)
+    """)
+    Double calculateCommissionByShop(@Param("shopId") Long shopId);
 
 
-    // Thống kê tổng doanh thu của toàn bộ hệ thống với status là Success
+
+
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = 'SUCCESS' AND p.isDelete = false")
     Double calculateTotalRevenueForSystem();
+
+    @Query("SELECT SUM(p.amount * 0.1) FROM Payment p WHERE p.status = 'SUCCESS' AND p.isDelete = false")
+    Double calculateTotalCommissionForSystem();
+
 }
