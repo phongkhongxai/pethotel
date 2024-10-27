@@ -51,7 +51,10 @@ public class User {
     private String password;
     @Column
     private String avatarUrl;
-
+    @Column
+    private LocalDateTime premiumExpiryDate;
+    @Column(nullable = false)
+    private boolean isPremium = false;
     @Column(nullable = false)
     private boolean isDelete = false;
 

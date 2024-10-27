@@ -91,6 +91,13 @@ public class UserController {
         return new ResponseEntity<>(bt1, HttpStatus.OK);
     }
     @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CUSTOMER')")
+    @PutMapping("/active-premium/{id}/")
+    public ResponseEntity<?> updateUserPremium(@PathVariable("id") Long id,@RequestParam int months) {
+        UserDto bt1 = userService.activatePremium(id, months);
+        return new ResponseEntity<>(bt1, HttpStatus.OK);
+    }
+    @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {

@@ -3,6 +3,7 @@ package com.bumble.pethotel.services.impl;
 import com.bumble.pethotel.models.entity.Booking;
 import com.bumble.pethotel.models.entity.Payment;
 import com.bumble.pethotel.models.entity.Shop;
+import com.bumble.pethotel.models.entity.User;
 import com.bumble.pethotel.models.exception.PetApiException;
 import com.bumble.pethotel.models.payload.dto.PaymentDto;
 import com.bumble.pethotel.models.payload.responseModel.PaymentsResponse;
@@ -11,6 +12,7 @@ import com.bumble.pethotel.repositories.PaymentRepository;
 import com.bumble.pethotel.repositories.ShopRepository;
 import com.bumble.pethotel.repositories.UserRepository;
 import com.bumble.pethotel.services.PaymentService;
+import com.bumble.pethotel.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,6 +42,8 @@ public class PaymentServiceImpl implements PaymentService {
     private BookingRepository bookingRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
     @Autowired
     private ShopRepository shopRepository;
     @Autowired
@@ -79,7 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PetApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Webhook processing failed");
         }
     }*/
-
+    @Override
     public CheckoutResponseData createPaymentLink(Long bookingId, String returnUrl, String cancelUrl) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "Booking not found"));
@@ -122,6 +126,51 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    @Override
+    public CheckoutResponseData createPaymentLinkForSubscription(Long userId,int price, String returnUrl, String cancelUrl) {
+         User user = userRepository.findById(userId)
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "User not found"));
+        Booking booking = bookingRepository.findById(1L)
+                .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "Booking not found"));
+        // Gọi API để tạo yêu cầu thanh toán với PayOS
+        String description = "Thanh toán Subscription";
+
+        String currentTimeString = String.valueOf(new Date().getTime());
+        long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
+        ItemData item = ItemData.builder()
+                .name("Sub #" + 1)
+                .quantity(1)
+                .price(price)
+                .build();
+
+        PaymentData paymentData = PaymentData.builder()
+                .orderCode(orderCode)
+                .amount(price)
+                .description(description)
+                .returnUrl(returnUrl)
+                .cancelUrl(cancelUrl)
+                .item(item)
+                .build();
+
+        try {
+            CheckoutResponseData checkoutData = payOS.createPaymentLink(paymentData);
+            String qrCodeUrl = checkoutData.getCheckoutUrl();
+
+            Payment payment = new Payment();
+            payment.setBooking(booking);
+            payment.setAmount(price);
+            payment.setStatus("PENDING");
+            payment.setMethod("PREMIUM");
+            payment.setQrCodeUrl(qrCodeUrl);
+            payment.setOrderCode(orderCode);
+            payment.setUserId(user.getId());
+            payment.setDate(LocalDateTime.now());
+            paymentRepository.save(payment);
+            return checkoutData;
+        } catch (Exception e) {
+            throw new PetApiException(HttpStatus.INTERNAL_SERVER_ERROR,"Lỗi tạo mã QR-Pay");
+        }
+    }
 
 
     @Override
@@ -151,6 +200,38 @@ public class PaymentServiceImpl implements PaymentService {
         templatesResponse.setTotalRevenue(totalRevenue != null ? totalRevenue : 0.0);
         Double commission = paymentRepository.calculateTotalCommissionForSystem();
         templatesResponse.setCommission(commission != null ? commission : 0.0);
+        Double premium = paymentRepository.calculatePremiumForSystem();
+        templatesResponse.setPremium(premium != null ? premium : 0.0);
+
+
+        return templatesResponse;
+    }
+
+    @Override
+    public PaymentsResponse getAllPaymentsForSubscription(int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Payment> payments = paymentRepository.findAllPremiumNotDeleted(pageable);
+
+        // get content for page object
+        List<Payment> listOfPayment = payments.getContent();
+
+        List<PaymentDto> content = listOfPayment.stream().map(bt -> modelMapper.map(bt, PaymentDto.class)).collect(Collectors.toList());
+
+        PaymentsResponse templatesResponse = new PaymentsResponse();
+        templatesResponse.setContent(content);
+        templatesResponse.setPageNo(payments.getNumber());
+        templatesResponse.setPageSize(payments.getSize());
+        templatesResponse.setTotalElements(payments.getTotalElements());
+        templatesResponse.setTotalPages(payments.getTotalPages());
+        templatesResponse.setLast(payments.isLast());
+        Double premium = paymentRepository.calculatePremiumForSystem();
+        templatesResponse.setPremium(premium != null ? premium : 0.0);
 
 
         return templatesResponse;
@@ -210,18 +291,24 @@ public class PaymentServiceImpl implements PaymentService {
         payment1.setStatus(status);
         paymentRepository.save(payment1);
         if (status.equalsIgnoreCase("SUCCESS")) {
-            // Tìm Booking liên quan đến Payment
-            Optional<Booking> booking = bookingRepository.findByPayments_OrderCode(payment1.getOrderCode());
-            if (booking.isEmpty()) {
-                throw new PetApiException(HttpStatus.NOT_FOUND, "Booking not found for orderCode: " + id);
+            if (payment1.getMethod().equalsIgnoreCase("PREMIUM")){
+                userService.activatePremium(payment1.getUserId(), 1);
+            }else{
+                // Tìm Booking liên quan đến Payment
+                Optional<Booking> booking = bookingRepository.findByPayments_OrderCode(payment1.getOrderCode());
+                if (booking.isEmpty()) {
+                    throw new PetApiException(HttpStatus.NOT_FOUND, "Booking not found for orderCode: " + id);
+                }
+
+                Booking booking1 = booking.get();
+                booking1.setStatus("COMPLETED"); // Hoặc trạng thái thích hợp cho Booking
+                bookingRepository.save(booking1);
             }
- 
-            Booking booking1 = booking.get();
-            booking1.setStatus("COMPLETED"); // Hoặc trạng thái thích hợp cho Booking
-            bookingRepository.save(booking1);
         }
 
 
         return "Update payment to "+ status +" successfully.";
     }
+
+
 }

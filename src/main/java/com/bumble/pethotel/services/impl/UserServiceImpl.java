@@ -18,9 +18,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -257,5 +259,32 @@ public class UserServiceImpl implements UserService {
         templatesResponse.setLast(users.isLast());
 
         return templatesResponse;
+    }
+
+    @Override
+    public UserDto activatePremium(Long userId, int months) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new PetApiException(HttpStatus.BAD_REQUEST, "User not found"));
+
+        user.setPremium(true);
+        user.setPremiumExpiryDate(LocalDateTime.now().plusMonths(months));
+        User updatedUser = userRepository.save(user);
+        return modelMapper.map(updatedUser, UserDto.class);
+    }
+
+    @Scheduled(cron = "0 0 23 * * ?") // Chạy vào 23:00 mỗi ngày
+    public void checkAndUpdatePremiumStatusForAllUsers() {
+        List<User> premiumUsers = userRepository.findByIsPremiumTrue(); // Giả sử bạn có method này để lấy user premium
+
+        for (User user : premiumUsers) {
+            checkAndUpdatePremiumStatus(user);
+        }
+    }
+
+    public void checkAndUpdatePremiumStatus(User user) {
+        if (user.isPremium() && user.getPremiumExpiryDate()!=null && user.getPremiumExpiryDate().isBefore(LocalDateTime.now())) {
+            user.setPremium(false);
+            userRepository.save(user);
+        }
     }
 }

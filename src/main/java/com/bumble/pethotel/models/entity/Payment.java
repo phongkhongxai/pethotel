@@ -31,6 +31,8 @@ public class Payment {
     @Column
     private String qrCodeUrl;
     @Column
+    private Long userId;
+    @Column
     private Long orderCode;
     @ManyToOne
     @JoinColumn(name = "booking_id", nullable = false)

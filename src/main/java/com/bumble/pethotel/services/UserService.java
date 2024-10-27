@@ -22,6 +22,8 @@ public interface UserService {
     UsersResponse getAllAdminUser(int pageNo, int pageSize, String sortBy, String sortDir);
     UsersResponse getAllCustomerUser(int pageNo, int pageSize, String sortBy, String sortDir);
 
+    UserDto activatePremium(Long userId, int months);
+
 
 
 }
