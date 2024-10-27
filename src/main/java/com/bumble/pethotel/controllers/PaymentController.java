@@ -40,6 +40,13 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.createPaymentLink(bookingId,returnUrl,cancelUrl));
     }
 
+    @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
+    @PostMapping("/create-paymentlink/subscription/{userId}")
+    public ResponseEntity<?> createPaymentForSubsription(@PathVariable("userId") Long userid,@RequestParam int price, @RequestParam String returnUrl, @RequestParam String cancelUrl) {
+        return ResponseEntity.ok(paymentService.createPaymentLinkForSubscription(userid,price, returnUrl,cancelUrl));
+    }
+
 
     @PostMapping("/confirm-webhook")
     public ObjectNode confirmPayOSWebhook(@RequestBody Map<String, String> requestBody) {
@@ -136,12 +143,20 @@ public class PaymentController {
     }
 
     @GetMapping("/total")
-    public PaymentsResponse getPetsByUser(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+    public PaymentsResponse getAllPayment(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
                                           @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
                                           @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
                                           @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir
                                          ){
         return paymentService.getAllPayments(pageNo, pageSize, sortBy, sortDir);
+    }
+    @GetMapping("/subscription")
+    public PaymentsResponse getAllPaymentSubscription(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                          @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                          @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                          @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir
+    ){
+        return paymentService.getAllPaymentsForSubscription(pageNo, pageSize, sortBy, sortDir);
     }
 
 

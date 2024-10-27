@@ -108,6 +108,10 @@ public class BookingServiceImpl implements BookingService {
         } else {
             throw new PetApiException(HttpStatus.BAD_REQUEST,"Must book either a room or a service.");
         }
+
+        double discountRate = user.isPremium() ? 0.05 : 0.10;
+        double discount = totalPrice * discountRate;
+        totalPrice += discount;
         Booking booking = bookingBuilder.type(type).totalPrice(totalPrice).build();
 
         Booking savedBooking = bookingRepository.save(booking);
