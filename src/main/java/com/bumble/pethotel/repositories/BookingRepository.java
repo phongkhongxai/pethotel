@@ -20,7 +20,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b " +
             "LEFT JOIN b.room r " +
             "LEFT JOIN b.careServices cs " +
-            "WHERE (r.shop.id = :shopId OR cs.shop.id = :shopId) AND b.isDelete = false")
+            "WHERE (r.shop.id = :shopId OR cs.shop.id = :shopId) AND b.isDelete = false AND b.status='COMPLETED'")
     Page<Booking> findByShopIdAndIsDeleteFalse(@Param("shopId") Long shopId, Pageable pageable);
 
     Optional<Booking> findByPayments_OrderCode(Long orderCode);
