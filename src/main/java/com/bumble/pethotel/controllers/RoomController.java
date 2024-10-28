@@ -70,6 +70,7 @@ public class RoomController {
         RoomDto bt1 = roomService.updateRoomStatus(id, status);
         return new ResponseEntity<>(bt1, HttpStatus.OK);
     }
+
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")

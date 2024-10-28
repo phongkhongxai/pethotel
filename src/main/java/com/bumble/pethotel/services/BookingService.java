@@ -7,8 +7,9 @@ public interface BookingService {
     BookingDto createBooking(BookingDto bookingDto);
     BookingDto getBookingById(Long id);
     BookingsResponse getAllBookings(int pageNo, int pageSize, String sortBy, String sortDir);
-    BookingsResponse getAllBookingsOfUser(Long userId,int pageNo, int pageSize, String sortBy, String sortDir);
+    BookingsResponse getAllBookingsOfUser(Long userId,String status,int pageNo, int pageSize, String sortBy, String sortDir);
 
     BookingsResponse getAllBookingsOfShop(Long shopId,int pageNo, int pageSize, String sortBy, String sortDir);
+    String updateStatusBooking(Long id,String status);
 
 }

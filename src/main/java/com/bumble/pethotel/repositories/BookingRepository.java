@@ -15,7 +15,8 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT p FROM Booking p WHERE p.isDelete = false")
     Page<Booking> findAllNotDeleted(Pageable pageable);
-    Page<Booking> findByUserAndIsDeleteFalse(User user, Pageable pageable);
+    Page<Booking> findByUserAndStatusAndIsDeleteFalse(User user, String status, Pageable pageable);
+
     @Query("SELECT b FROM Booking b " +
             "LEFT JOIN b.room r " +
             "LEFT JOIN b.careServices cs " +
@@ -23,4 +24,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findByShopIdAndIsDeleteFalse(@Param("shopId") Long shopId, Pageable pageable);
 
     Optional<Booking> findByPayments_OrderCode(Long orderCode);
+    @Query("SELECT b FROM Booking b " +
+            "LEFT JOIN b.room r " +
+            "WHERE b.user = :user AND (r.shop.id = :shopId OR EXISTS " +
+            "(SELECT cs FROM b.careServices cs WHERE cs.shop.id = :shopId)) " +
+            "AND b.isDelete = false " +
+            "ORDER BY b.dateBooking DESC")
+    Optional<Booking> findLatestByUserAndShop(@Param("user") User user, @Param("shopId") Long shopId);
+
 }

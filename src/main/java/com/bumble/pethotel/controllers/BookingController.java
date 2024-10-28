@@ -32,13 +32,30 @@ public class BookingController {
                                      @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
         return bookingService.getAllBookings(pageNo, pageSize, sortBy, sortDir);
     }
-    @GetMapping("/users/{userId}")
-    public BookingsResponse getBookingsOfUser(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+    @GetMapping("/pending/users/{userId}")
+    public BookingsResponse getBookingsOfUserPending(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
                                         @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
                                         @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
                                         @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
                                         @PathVariable("userId") Long userId){
-        return bookingService.getAllBookingsOfUser(userId,pageNo, pageSize, sortBy, sortDir);
+        return bookingService.getAllBookingsOfUser(userId,"PENDING",pageNo, pageSize, sortBy, sortDir);
+    }
+
+
+    @GetMapping("/completed/users/{userId}")
+    public BookingsResponse getBookingsOfUserCompleted(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+                                              @RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+                                              @RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+                                              @RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir,
+                                              @PathVariable("userId") Long userId){
+        return bookingService.getAllBookingsOfUser(userId,"COMPLETED",pageNo, pageSize, sortBy, sortDir);
+    }
+    @SecurityRequirement(name = "Bear Authentication")
+    @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
+    @PutMapping("/cancel/{id}")
+    public ResponseEntity<?> updateStatusCancelBooking(@PathVariable("id")Long id) {
+        String msg = bookingService.updateStatusBooking(id,"CANCELLED");
+        return new ResponseEntity<>(msg, HttpStatus.OK);
     }
 
     @GetMapping("/shops/{shopId}")
