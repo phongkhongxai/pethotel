@@ -141,8 +141,8 @@ public class ShopServiceImpl implements ShopService {
         }
         Shop shop = shopOptional.get();
         shop.setShopVerified(true);
-        shopRepository.save(shop);
         emailVerificationService.sendEmailNotify(shop);
+        shopRepository.save(shop);
         return "Verified successfully";
     }
 

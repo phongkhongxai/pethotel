@@ -36,6 +36,7 @@ public class EmailVerificationService {
         String message = "Your verification code is: " + verificationCode;
 
         SimpleMailMessage email = new SimpleMailMessage();
+        email.setFrom("apehome8386@gmail.com");
         email.setTo(recipientEmail);
         email.setSubject(subject);
         email.setText(message);
@@ -59,6 +60,7 @@ public class EmailVerificationService {
         String message = "To reset your password, use the following token: " + resetToken;
 
         SimpleMailMessage email = new SimpleMailMessage();
+        email.setFrom("apehome8386@gmail.com");
         email.setTo(recipientEmail);
         email.setSubject(subject);
         email.setText(message);
@@ -79,6 +81,7 @@ public class EmailVerificationService {
 
     private void sendEmail(String recipientEmail, String subject, String message) {
         SimpleMailMessage email = new SimpleMailMessage();
+        email.setFrom("apehome8386@gmail.com");
         email.setTo(recipientEmail);
         email.setSubject(subject);
         email.setText(message);
