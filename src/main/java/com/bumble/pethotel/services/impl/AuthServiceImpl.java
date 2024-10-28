@@ -157,9 +157,9 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(userRole);
         user.setEmailVerified(false);
         user.setAvatarUrl("default");
+        emailVerificationService.sendVerificationCode(user);
 
         User user1 = userRepository.save(user);
-        emailVerificationService.sendVerificationCode(user1);
 
         return "User registered successfully! Please check your email for the verification code.";
     }
@@ -186,9 +186,9 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(userRole);
         user.setEmailVerified(false);
         user.setAvatarUrl("default");
+        emailVerificationService.sendVerificationCode(user);
 
         User user1 = userRepository.save(user);
-        emailVerificationService.sendVerificationCode(user1);
 
         return "User registered successfully! Please check your email for the verification code.";
     }
