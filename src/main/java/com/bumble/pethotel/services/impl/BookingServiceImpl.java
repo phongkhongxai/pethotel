@@ -153,7 +153,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingsResponse getAllBookingsOfUser(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
+    public BookingsResponse getAllBookingsOfUser(Long userId,String status, int pageNo, int pageSize, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
@@ -164,7 +164,7 @@ public class BookingServiceImpl implements BookingService {
         // create Pageable instance
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<Booking> bookings = bookingRepository.findByUserAndIsDeleteFalse(userOptional.get(),pageable);
+        Page<Booking> bookings = bookingRepository.findByUserAndStatusAndIsDeleteFalse(userOptional.get(),status,pageable);
 
 
         List<Booking> listOfBookings = bookings.getContent();
@@ -210,5 +210,17 @@ public class BookingServiceImpl implements BookingService {
         templatesResponse.setLast(bookings.isLast());
 
         return templatesResponse;
+    }
+
+    @Override
+    public String updateStatusBooking(Long id,String status) {
+        Optional<Booking> booking = bookingRepository.findById(id);
+        if (booking.isEmpty()) {
+            throw new PetApiException(HttpStatus.NOT_FOUND, "Booking not found with id: " + id);
+        }
+        Booking booking1 = booking.get();
+        booking1.setStatus(status);
+        bookingRepository.save(booking1);
+        return "Updated status booking successfully";
     }
 }

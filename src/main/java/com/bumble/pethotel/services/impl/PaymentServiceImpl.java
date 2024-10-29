@@ -202,6 +202,7 @@ public class PaymentServiceImpl implements PaymentService {
         templatesResponse.setCommission(commission != null ? commission : 0.0);
         Double premium = paymentRepository.calculatePremiumForSystem();
         templatesResponse.setPremium(premium != null ? premium : 0.0);
+        
 
 
         return templatesResponse;
