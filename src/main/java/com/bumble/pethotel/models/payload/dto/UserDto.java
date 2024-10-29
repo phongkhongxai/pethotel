@@ -22,4 +22,5 @@ public class UserDto {
     private String phone;
     private String username;
     private Long roleId;
+    private boolean isPremium;
 }
