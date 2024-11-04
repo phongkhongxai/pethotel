@@ -52,8 +52,30 @@ public class PetServiceImpl implements PetService {
         if (user.isEmpty()){
             throw new PetApiException(HttpStatus.NOT_FOUND, "User not found with id: "+ petDto.getUserId());
         }
-        Pet pet = modelMapper.map(petDto, Pet.class);
-        pet.setDelete(false);
+        Pet pet0 = modelMapper.map(petDto, Pet.class);
+        pet0.setDelete(false);
+        Pet pet = petRepository.save(pet0);
+        if (petDto.getFiles() != null && !petDto.getFiles().isEmpty()) {
+            List<String> uploadedUrls = cloudinaryService.uploadFiles(petDto.getFiles(), "pets/" + pet.getId());
+
+            // Save the image URLs to the shop entity
+            Set<ImageFile> imageFiles = new HashSet<>();
+            for (String url : uploadedUrls) {
+                if (!"default".equals(url)) {
+                    ImageFile imageFile = ImageFile.builder()
+                            .url(url)
+                            .pet(pet)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    imageFiles.add(imageFile);
+                }
+            }
+            if (pet.getImageFile() == null) {
+                pet.setImageFile(new HashSet<>());
+            }
+
+            pet.getImageFile().addAll(imageFiles);
+        }
         return modelMapper.map(petRepository.save(pet), PetDto.class);
     }
 
