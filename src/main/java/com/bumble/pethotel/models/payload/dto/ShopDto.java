@@ -40,4 +40,5 @@ public class ShopDto {
     @NotNull(message = "User ID is required")
     private Long userId;
     private Set<CareServiceDto> services;
+    private Set<ImageFileDto> imageFiles;
 }

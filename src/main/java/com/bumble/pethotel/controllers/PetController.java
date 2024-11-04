@@ -56,7 +56,7 @@ public class PetController {
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePet(@PathVariable("id") Long id, @Valid @RequestBody PetUpdated petUpdated) {
+    public ResponseEntity<?> updatePet(@PathVariable("id") Long id, @Valid @ModelAttribute PetUpdated petUpdated) {
         PetDto bt1 = petService.updatePet(id, petUpdated);
         return new ResponseEntity<>(bt1, HttpStatus.OK);
     }

@@ -2,6 +2,7 @@ package com.bumble.pethotel.services.impl;
 
 import com.bumble.pethotel.models.entity.*;
 import com.bumble.pethotel.models.exception.PetApiException;
+import com.bumble.pethotel.models.payload.dto.ImageFileDto;
 import com.bumble.pethotel.models.payload.dto.PetDto;
 import com.bumble.pethotel.models.payload.dto.ShopDto;
 import com.bumble.pethotel.models.payload.requestModel.PetUpdated;
@@ -63,6 +64,19 @@ public class PetServiceImpl implements PetService {
             throw new PetApiException(HttpStatus.NOT_FOUND, "Pet not found with id: "+ id);
 
         }
+        PetDto petDto = modelMapper.map(pet.get(), PetDto.class);
+
+        // Chuyển đổi Set<ImageFile> thành Set<ImageFileDto>
+        Set<ImageFileDto> imageFileDtos = pet.get().getImageFile().stream()
+                .map(imageFile -> new ImageFileDto(
+                        imageFile.getId(),
+                        imageFile.getUrl(),
+                        imageFile.getCreatedAt().toString() // Hoặc định dạng ngày tháng khác nếu cần
+                ))
+                .collect(Collectors.toSet());
+
+        // Gán imageFileDtos vào shopDto
+        petDto.setImageFile(imageFileDtos);
         return modelMapper.map(pet.get(),PetDto.class);
     }
 
@@ -139,6 +153,24 @@ public class PetServiceImpl implements PetService {
             PetType petType = petTypeRepository.findById(petUpdated.getPetTypeId())
                     .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "PetType not found with id: " + petUpdated.getPetTypeId()));
             pet.setPetType(petType);
+        }
+        if (petUpdated.getFiles() != null && !petUpdated.getFiles().isEmpty()) {
+            List<String> uploadedUrls = cloudinaryService.uploadFiles(petUpdated.getFiles(), "pets/" + id);
+
+            // Save the image URLs to the shop entity
+            Set<ImageFile> imageFiles = new HashSet<>();
+            for (String url : uploadedUrls) {
+                if (!"default".equals(url)) {
+                    ImageFile imageFile = ImageFile.builder()
+                            .url(url)
+                            .pet(pet)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    imageFiles.add(imageFile);
+                }
+            }
+
+            pet.getImageFile().addAll(imageFiles);
         }
         Pet updatedPet = petRepository.save(pet);
         return modelMapper.map(updatedPet, PetDto.class);

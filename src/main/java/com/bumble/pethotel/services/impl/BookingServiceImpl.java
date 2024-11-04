@@ -14,8 +14,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -222,5 +224,20 @@ public class BookingServiceImpl implements BookingService {
         booking1.setStatus(status);
         bookingRepository.save(booking1);
         return "Updated status booking successfully";
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")  // Chạy vào 0:00 mỗi ngày
+    public void updateRoomStatusDaily() {
+        LocalDate today = LocalDate.now();
+
+        List<Booking> expiredBookings = bookingRepository.findByEndDateBeforeAndStatus(today, "COMPLETED");
+
+        for (Booking booking : expiredBookings) {
+            Room room = booking.getRoom();
+            if (room != null && room.getStatus().equals("occupied")) {
+                room.setStatus("available");
+                roomRepository.save(room);  // Cập nhật trạng thái Room trong database
+            }
+        }
     }
 }

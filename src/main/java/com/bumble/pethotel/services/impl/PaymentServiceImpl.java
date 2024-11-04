@@ -1,16 +1,10 @@
 package com.bumble.pethotel.services.impl;
 
-import com.bumble.pethotel.models.entity.Booking;
-import com.bumble.pethotel.models.entity.Payment;
-import com.bumble.pethotel.models.entity.Shop;
-import com.bumble.pethotel.models.entity.User;
+import com.bumble.pethotel.models.entity.*;
 import com.bumble.pethotel.models.exception.PetApiException;
 import com.bumble.pethotel.models.payload.dto.PaymentDto;
 import com.bumble.pethotel.models.payload.responseModel.PaymentsResponse;
-import com.bumble.pethotel.repositories.BookingRepository;
-import com.bumble.pethotel.repositories.PaymentRepository;
-import com.bumble.pethotel.repositories.ShopRepository;
-import com.bumble.pethotel.repositories.UserRepository;
+import com.bumble.pethotel.repositories.*;
 import com.bumble.pethotel.services.PaymentService;
 import com.bumble.pethotel.services.UserService;
 import org.modelmapper.ModelMapper;
@@ -46,6 +40,8 @@ public class PaymentServiceImpl implements PaymentService {
     private UserService userService;
     @Autowired
     private ShopRepository shopRepository;
+    @Autowired
+    private RoomRepository roomRepository;
     @Autowired
     private PayOS payOS;
     @Override
@@ -304,6 +300,13 @@ public class PaymentServiceImpl implements PaymentService {
                 Booking booking1 = booking.get();
                 booking1.setStatus("COMPLETED"); // Hoặc trạng thái thích hợp cho Booking
                 bookingRepository.save(booking1);
+
+                // Tìm Room liên quan đến Booking và cập nhật trạng thái Room thành "occupied"
+                Room room = booking1.getRoom();
+                if (room != null) {
+                    room.setStatus("occupied");
+                    roomRepository.save(room);
+                }
             }
         }
 

@@ -5,6 +5,7 @@ import com.bumble.pethotel.models.entity.Pet;
 import com.bumble.pethotel.models.entity.Shop;
 import com.bumble.pethotel.models.entity.User;
 import com.bumble.pethotel.models.exception.PetApiException;
+import com.bumble.pethotel.models.payload.dto.ImageFileDto;
 import com.bumble.pethotel.models.payload.dto.PetDto;
 import com.bumble.pethotel.models.payload.dto.ShopDto;
 import com.bumble.pethotel.models.payload.requestModel.ShopUpdated;
@@ -69,12 +70,29 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public ShopDto getShopById(Long id) {
-        Optional<Shop> shop = shopRepository.findById(id);
-        if(shop.isEmpty()){
+        Optional<Shop> shopOptional = shopRepository.findById(id);
+        if(shopOptional.isEmpty()){
             throw new PetApiException(HttpStatus.NOT_FOUND, "Shop not found with id: "+ id);
 
         }
-        return modelMapper.map(shop.get(), ShopDto.class);
+        Shop shop = shopOptional.get();
+
+        // Chuyển đổi Shop thành ShopDto
+        ShopDto shopDto = modelMapper.map(shop, ShopDto.class);
+
+        // Chuyển đổi Set<ImageFile> thành Set<ImageFileDto>
+        Set<ImageFileDto> imageFileDtos = shop.getImageFile().stream()
+                .map(imageFile -> new ImageFileDto(
+                        imageFile.getId(),
+                        imageFile.getUrl(),
+                        imageFile.getCreatedAt().toString() // Hoặc định dạng ngày tháng khác nếu cần
+                ))
+                .collect(Collectors.toSet());
+
+        // Gán imageFileDtos vào shopDto
+        shopDto.setImageFiles(imageFileDtos);
+
+        return shopDto;
     }
 
     @Override
@@ -90,8 +108,22 @@ public class ShopServiceImpl implements ShopService {
         // get content for page object
         List<Shop> listOfShops = shops.getContent();
 
-        List<ShopDto> content = listOfShops.stream().map(bt -> modelMapper.map(bt, ShopDto.class)).collect(Collectors.toList());
+        List<ShopDto> content = listOfShops.stream().map(shop -> {
+            ShopDto shopDto = modelMapper.map(shop, ShopDto.class);
 
+            // Chuyển đổi Set<ImageFile> sang Set<ImageFileDto>
+            Set<ImageFileDto> imageFileDtos = shop.getImageFile().stream()
+                    .map(imageFile -> new ImageFileDto(
+                            imageFile.getId(),
+                            imageFile.getUrl(),
+                            imageFile.getCreatedAt().toString()  // Hoặc định dạng khác nếu cần
+                    ))
+                    .collect(Collectors.toSet());
+
+            // Gán imageFileDtos vào shopDto
+            shopDto.setImageFiles(imageFileDtos);
+            return shopDto;
+        }).collect(Collectors.toList());
         ShopsResponse templatesResponse = new ShopsResponse();
         templatesResponse.setContent(content);
         templatesResponse.setPageNo(shops.getNumber());
@@ -161,8 +193,21 @@ public class ShopServiceImpl implements ShopService {
         // get content for page object
         List<Shop> listOfShops = shops.getContent();
 
-        List<ShopDto> content = listOfShops.stream().map(bt -> modelMapper.map(bt, ShopDto.class)).collect(Collectors.toList());
+        List<ShopDto> content = listOfShops.stream().map(shop -> {
+            ShopDto shopDto = modelMapper.map(shop, ShopDto.class);
 
+            // Chuyển đổi Set<ImageFile> sang Set<ImageFileDto>
+            Set<ImageFileDto> imageFileDtos = shop.getImageFile().stream()
+                    .map(imageFile -> new ImageFileDto(
+                            imageFile.getId(),
+                            imageFile.getUrl(),
+                            imageFile.getCreatedAt().toString()  // Hoặc định dạng khác nếu cần
+                    ))
+                    .collect(Collectors.toSet());
+
+            shopDto.setImageFiles(imageFileDtos);
+            return shopDto;
+        }).collect(Collectors.toList());
         ShopsResponse templatesResponse = new ShopsResponse();
         templatesResponse.setContent(content);
         templatesResponse.setPageNo(shops.getNumber());
@@ -191,7 +236,25 @@ public class ShopServiceImpl implements ShopService {
         shop.setDescription(shopUpdated.getDescription() != null ? shopUpdated.getDescription() : shop.getDescription());
         shop.setBankName(shopUpdated.getBankName() != null ? shopUpdated.getBankName() : shop.getBankName());
         shop.setAccountNumber(shopUpdated.getAccountNumber() != null ? shopUpdated.getAccountNumber() : shop.getAccountNumber());
+        if (shopUpdated.getFiles() != null && !shopUpdated.getFiles().isEmpty()) {
+            List<String> uploadedUrls = cloudinaryService.uploadFiles(shopUpdated.getFiles(), "shops/" + id);
 
+            // Save the image URLs to the shop entity
+            Set<ImageFile> imageFiles = new HashSet<>();
+            for (String url : uploadedUrls) {
+                if (!"default".equals(url)) {  // Skip default URLs if any
+                    ImageFile imageFile = ImageFile.builder()
+                            .url(url)
+                            .shop(shop)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    imageFiles.add(imageFile);
+                }
+            }
+
+            // Add new images to the existing set of images for the shop
+            shop.getImageFile().addAll(imageFiles);
+        }
         Shop updatedShop = shopRepository.save(shop);
         return modelMapper.map(updatedShop, ShopDto.class);
     }
