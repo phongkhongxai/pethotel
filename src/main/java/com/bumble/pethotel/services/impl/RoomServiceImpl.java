@@ -59,7 +59,7 @@ public class RoomServiceImpl implements RoomService {
                     .name(createRoomRequest.getName())
                     .description(createRoomRequest.getDescription())
                     .price(createRoomRequest.getPrice())
-                    .status(createRoomRequest.getStatus())
+                    .status("available")
                     .sign(createRoomRequest.getSign())
                     .code(code)
                     .shop(shopOptional.get()).roomType(roomType)
@@ -188,6 +188,8 @@ public class RoomServiceImpl implements RoomService {
                 .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND, "No available rooms found"));
         return modelMapper.map(randomRoom, RoomDto.class);
     }
+
+
 
 
 }

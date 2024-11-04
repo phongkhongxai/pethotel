@@ -82,7 +82,7 @@ public class ShopController {
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateShop(@PathVariable("id") Long id, @Valid @RequestBody ShopUpdated shopUpdated) {
+    public ResponseEntity<?> updateShop(@PathVariable("id") Long id, @Valid @ModelAttribute ShopUpdated shopUpdated) {
         ShopDto bt1 = shopService.updateShop(id, shopUpdated);
         return new ResponseEntity<>(bt1, HttpStatus.OK);
     }

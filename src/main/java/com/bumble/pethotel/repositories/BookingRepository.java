@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -31,5 +33,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.isDelete = false " +
             "ORDER BY b.dateBooking DESC")
     Optional<Booking> findLatestByUserAndShop(@Param("user") User user, @Param("shopId") Long shopId);
-
+    List<Booking> findByEndDateBeforeAndStatus(LocalDate date, String status);
 }
