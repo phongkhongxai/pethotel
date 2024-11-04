@@ -28,7 +28,7 @@ public class PetController {
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_ADMIN')")
     @PostMapping
-    public ResponseEntity<?> createPet(@Valid @RequestBody PetDto petDto) {
+    public ResponseEntity<?> createPet(@Valid @ModelAttribute PetDto petDto) {
         PetDto pt = petService.savePet(petDto);
         return new ResponseEntity<>(pt, HttpStatus.CREATED);
     }
