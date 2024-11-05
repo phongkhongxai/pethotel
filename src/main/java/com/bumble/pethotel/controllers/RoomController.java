@@ -66,7 +66,7 @@ public class RoomController {
     @SecurityRequirement(name = "Bear Authentication")
     @PreAuthorize("hasRole('ROLE_OWNER') or hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")  // "available", "occupied", "maintenance", "closed"
-    public ResponseEntity<?> updateStatusOfRoom(@PathVariable("id") Long id, @RequestBody String status ) {
+    public ResponseEntity<?> updateStatusOfRoom(@PathVariable("id") Long id, @RequestParam(value = "status") String status ) {
         RoomDto bt1 = roomService.updateRoomStatus(id, status);
         return new ResponseEntity<>(bt1, HttpStatus.OK);
     }
