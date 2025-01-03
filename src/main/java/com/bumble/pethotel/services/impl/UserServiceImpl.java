@@ -150,6 +150,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto getProfileUserByUsernameOrEmail(String username, String email) {
+        User existingUser = userRepository.findByUsernameOrEmail(username, email)
+                .orElseThrow(() -> new PetApiException(HttpStatus.BAD_REQUEST, "User not found"));
+        return modelMapper.map(existingUser, UserDto.class);
+    }
+
+    @Override
     public String deleteUser(Long id) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new PetApiException(HttpStatus.BAD_REQUEST, "User not found"));

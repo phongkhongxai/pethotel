@@ -73,7 +73,6 @@ public class CareServicesServiceImpl implements CareServicesService {
         templatesResponse.setTotalElements(careServices.getTotalElements());
         templatesResponse.setTotalPages(careServices.getTotalPages());
         templatesResponse.setLast(careServices.isLast());
-
         return templatesResponse;
     }
 

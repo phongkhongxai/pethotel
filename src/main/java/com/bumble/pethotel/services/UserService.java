@@ -14,6 +14,7 @@ public interface UserService {
     UserDto updateUser(Long id, UserUpdatedRequest signupDto);
     UserDto changePassword(Long id, String oldPassword, String newPassword);
     UserDto getProfileUserById(Long id);
+    UserDto getProfileUserByUsernameOrEmail(String username, String email);
 
     String deleteUser(Long id);
     UsersResponse getAllUser(int pageNo, int pageSize, String sortBy, String sortDir);
