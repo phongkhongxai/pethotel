@@ -49,6 +49,9 @@ public class BookingServiceImpl implements BookingService {
 
         User user = userRepository.findById(bookingDto.getUserId())
                 .orElseThrow(() -> new PetApiException(HttpStatus.NOT_FOUND,"User not found"));
+        if (bookingRepository.existsConflict(bookingDto.getRoomId(), bookingDto.getStartDate(), bookingDto.getEndDate())) {
+            throw new PetApiException(HttpStatus.BAD_REQUEST,"Phòng này đã được đặt trong khoảng thời gian đã chọn!");
+        }
         Booking.BookingBuilder bookingBuilder = Booking.builder()
                 .startDate(bookingDto.getStartDate())
                 //.endDate(bookingDto.getEndDate())

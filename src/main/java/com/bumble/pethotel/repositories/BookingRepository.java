@@ -34,4 +34,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "ORDER BY b.dateBooking DESC")
     Optional<Booking> findLatestByUserAndShop(@Param("user") User user, @Param("shopId") Long shopId);
     List<Booking> findByEndDateBeforeAndStatus(LocalDate date, String status);
+    @Query("""
+        SELECT COUNT(b) > 0
+        FROM Booking b
+        WHERE b.room.id = :roomId
+          AND b.isDelete = false
+          AND b.status IN ('CONFIRMED', 'PENDING')
+          AND (
+               (:startDate BETWEEN b.startDate AND b.endDate)
+            OR (:endDate BETWEEN b.startDate AND b.endDate)
+            OR (b.startDate BETWEEN :startDate AND :endDate)
+          )
+    """)
+    boolean existsConflict(
+            @Param("roomId") Long roomId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
